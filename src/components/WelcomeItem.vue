@@ -14,7 +14,7 @@
 
 <script lang="ts" setup>
   const headingClick = () => {
-    console.log('hahah')
+    console.log('hahaaaah')
   }
 
 </script>
