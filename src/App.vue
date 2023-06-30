@@ -5,7 +5,7 @@ import HelloWorld from './components/HelloWorld.vue'
 
 <template>
   <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
+    <!-- <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" /> -->
 
     <div class="wrapper">
       <HelloWorld msg="You did it!" />
@@ -39,11 +39,11 @@ nav {
 }
 
 nav a.router-link-exact-active {
-  color: var(--color-text);
+  /* color: var(--color-text); */
 }
 
 nav a.router-link-exact-active:hover {
-  background-color: transparent;
+  /* background-color: transparent; */
 }
 
 nav a {
