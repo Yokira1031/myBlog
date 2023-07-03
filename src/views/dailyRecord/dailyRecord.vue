@@ -1,4 +1,4 @@
-E1FFFF<template>
+ <template>
   <div class="record">
     <div class="title">
       <!-- <span>日常记录贴</span> -->
@@ -7,7 +7,7 @@ E1FFFF<template>
       <!-- 每一天栏 -->
       <div class="record_title">
         <div class="tipCircle"
-          v-for="(item, index) in tipCircleList"
+          v-for="(item, index) in state.tipCircleList"
           :key="index"
           :style="item.active === true ? 'background-color: ' + item.bgColor + ';' : ''"
           @click="showDailyRecord(item.num)"
@@ -22,11 +22,13 @@ E1FFFF<template>
               type="textarea"
               :show-word-limit='false'
               placeholder="Please input"
+              @blur="submit"
             />
           </div>
+          <div class="input_mark">{{markTip}}</div>
           <!-- 确认按钮 -->
           <div class="record_button">
-            <div class="btn" @click="submit"></div>
+            <div class="btn" @click="sureToSave"></div>
           </div>
       </div>
     </div>
@@ -34,64 +36,99 @@ E1FFFF<template>
 </template>
 
 <script lang="ts" setup>
-import {ref, reactive} from 'vue'
+import {ref, reactive, toRef } from 'vue'
+import axios from 'axios';
+
 const textarea2 = ref('')
 // 一周每天的样式、数据
-const tipCircleList = reactive([
-  {
-    active: true,
-    num: '1',
-    text: '111',
-    bgColor: '#E1FFFF'
-  },
-  {
-    active: true,
-    num: '2',
-    text: '222',
-    bgColor: '#AFEEEE'
-  },
-  {
-    active: false,
-    num: '3',
-    text: '333',
-    bgColor: '#00FFFF'
-  },
-  {
-    active: true,
-    num: '4',
-    text: '444',
-    bgColor: '#008B8B'
-  },
-  {
-    active: true,
-    num: '5',
-    text: '555',
-    bgColor: '#008080'
-  },
-  {
-    active: true,
-    num: '6',
-    text: '666',
-    bgColor: '#008B8B'
-  },
-  {
-    active: true,
-    num: '7',
-    text: '777',
-    bgColor: '#F5DEB3'
-  }
-
-])
-
+const state = reactive({
+  tipCircleList: [
+    {
+      active: true,
+      num: '1',
+      text: '周一',
+      mark: '周一',
+      bgColor: '#FFE4B5'
+    },
+    {
+      active: true,
+      num: '2',
+      text: '周二',
+      mark: '周二',
+      bgColor: '#DEB887'
+    },
+    {
+      active: true,
+      num: '3',
+      text: '周三',
+      mark: '周三',
+      bgColor: '#EEE8AA'
+    },
+    {
+      active: true,
+      num: '4',
+      text: '周四',
+      mark: '周四',
+      bgColor: '#F5DEB3'
+    },
+    {
+      active: true,
+      num: '5',
+      text: '周五',
+      mark: '周五',
+      bgColor: '#98FB98'
+    },
+    {
+      active: true,
+      num: '6',
+      text: '周六',
+      mark: '周六',
+      bgColor: '#F5DEB3'
+    },
+    {
+      active: true,
+      num: '7',
+      text: '周日',
+      mark: '周日',
+      bgColor: '#F5DEB3'
+    }
+  ]
+})
 // 点击每一天改变样式
 const recordMainCSSChange = reactive(['record_main', 'record_main_1'])
-
+const markTip = ref('周一')
 // 点击每一天的颜色圆圈
 const showDailyRecord = (num) => {
   // 改变样式
   recordMainCSSChange[1] = 'record_main_' + num.toString()
+  switch(num) {
+    case '1':
+    markTip.value = '周一';
+    break;
+    case '2':
+    markTip.value = '周二';
+    break;
+    case '3':
+    markTip.value = '周三';
+    break;
+    case '4':
+    markTip.value = '周四';
+    break;
+    case '5':
+    markTip.value = '周五';
+    break;
+    case '6':
+    markTip.value = '周六';
+    break;
+    case '7':
+    markTip.value = '周七';
+    break;
+    default:
+    break;
+  }
+  console.log
   // 改变数据
-  textarea2.value = tipCircleList[num - 1].text
+  textarea2.value = state.tipCircleList[num - 1].text
   console.log('showw')
 }
 
@@ -111,9 +148,41 @@ const extractNumber = (str) => {
 // 便签确认提交
 const submit = () => {
   let num = extractNumber(recordMainCSSChange[1])
-  textarea2.value = tipCircleList[num - 1].text
+  state.tipCircleList[num - 1].text = textarea2.value
+}
+const sureToSave = () => {
+  saveData()
+}
+// 保存数组数据
+const saveData = () => {
+  console.log(state.tipCircleList)
+  axios.post('http://39.105.171.50:3389/api/save', {
+    array: state.tipCircleList
+  })
+    .then(response => {
+      console.log('数组数据已保存：', response.data);
+    })
+    .catch(error => {
+      console.error('保存数组数据时出错：', error);
+  });
+
 }
 
+// 获取数据
+const getData = () => {
+  axios.get('http://39.105.171.50:3389/api/data')
+    .then(response => {
+      console.log('hhh', state.tipCircleList)
+      console.log('从服务器获取的数组数据：', response.data);
+      state.tipCircleList = response.data.array
+      textarea2.value = state.tipCircleList[0].text
+      console.log('hhh', state.tipCircleList)
+    })
+    .catch(error => {
+      console.error('获取数组数据时出错：', error);
+  });
+}
+getData()
 
 </script>
 
@@ -176,13 +245,23 @@ const submit = () => {
             .el-textarea__inner{
               height: 100%;
               background-color: #dcffc1;
+              padding-top: 20px;
+              padding-left: 25px;
               box-shadow: none;
             }
 
             
           }
         }
-
+        .input_mark{
+          // color: red;
+          opacity: 0.7;
+          width: 30px;
+          position: relative;
+          font-size: 12px;
+          right: 80px;
+          top: 25px;
+        }
         .record_button{
           width: 20%;
           height: 100%;
@@ -204,13 +283,13 @@ const submit = () => {
         .record_input{
           :deep(.el-textarea){
             .el-textarea__inner{
-              background-color: #E1FFFF;
+              background-color: #FFE4B5;
             }
           }
         }
         .record_button{
           .btn{
-            background-color: #E1FFFF;
+            background-color: #FFE4B5;
           }
         }
       }
@@ -218,13 +297,13 @@ const submit = () => {
         .record_input{
           :deep(.el-textarea){
             .el-textarea__inner{
-              background-color: #AFEEEE;
+              background-color: #DEB887;
             }
           }
         }
         .record_button{
           .btn{
-            background-color: #AFEEEE;
+            background-color: #DEB887;
           }
         }
       }
@@ -232,13 +311,13 @@ const submit = () => {
         .record_input{
           :deep(.el-textarea){
             .el-textarea__inner{
-              background-color: #00FFFF;
+              background-color: #EEE8AA;
             }
           }
         }
         .record_button{
           .btn{
-            background-color: #00FFFF;
+            background-color: #EEE8AA;
           }
         }
       }
@@ -246,13 +325,13 @@ const submit = () => {
         .record_input{
           :deep(.el-textarea){
             .el-textarea__inner{
-              background-color: #008B8B;
+              background-color: #F5DEB3;
             }
           }
         }
         .record_button{
           .btn{
-            background-color: #008B8B;
+            background-color: #F5DEB3;
           }
         }
       }
@@ -260,13 +339,13 @@ const submit = () => {
         .record_input{
           :deep(.el-textarea){
             .el-textarea__inner{
-              background-color: #008080;
+              background-color: #98FB98;
             }
           }
         }
         .record_button{
           .btn{
-            background-color: #008080;
+            background-color: #98FB98;
           }
         }
       }
@@ -274,13 +353,13 @@ const submit = () => {
         .record_input{
           :deep(.el-textarea){
             .el-textarea__inner{
-              background-color: #008B8B;
+              background-color: #F5DEB3;
             }
           }
         }
         .record_button{
           .btn{
-            background-color: #008B8B;
+            background-color: #F5DEB3;
           }
         }
       }
