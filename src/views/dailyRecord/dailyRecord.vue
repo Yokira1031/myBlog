@@ -25,7 +25,10 @@
               @blur="submit"
             />
           </div>
-          <div class="input_mark">{{markTip}}</div>
+          <div class="input_mark">
+            <div class="week">{{markTip}}</div>
+            <div class="date_time">{{state.inputTime}}</div>
+          </div>
           <!-- 确认按钮 -->
           <div class="record_button">
             <div class="btn" @click="sureToSave"></div>
@@ -38,7 +41,11 @@
 <script lang="ts" setup>
 import {ref, reactive, toRef } from 'vue'
 import axios from 'axios';
+import  dateTime  from './time'
 
+console.log('dattttt', dateTime)
+// 记录输入时候的时间戳
+const inputTime = ref('123')
 const textarea2 = ref('')
 // 一周每天的样式、数据
 const state = reactive({
@@ -47,6 +54,7 @@ const state = reactive({
       active: true,
       num: '1',
       text: '周一',
+      newInpuTime: '',
       mark: '周一',
       bgColor: '#FFE4B5'
     },
@@ -54,6 +62,7 @@ const state = reactive({
       active: true,
       num: '2',
       text: '周二',
+      newInpuTime: '',
       mark: '周二',
       bgColor: '#DEB887'
     },
@@ -61,6 +70,7 @@ const state = reactive({
       active: true,
       num: '3',
       text: '周三',
+      newInpuTime: '',
       mark: '周三',
       bgColor: '#EEE8AA'
     },
@@ -68,6 +78,7 @@ const state = reactive({
       active: true,
       num: '4',
       text: '周四',
+      newInpuTime: '',
       mark: '周四',
       bgColor: '#F5DEB3'
     },
@@ -75,6 +86,7 @@ const state = reactive({
       active: true,
       num: '5',
       text: '周五',
+      newInpuTime: '',
       mark: '周五',
       bgColor: '#98FB98'
     },
@@ -82,6 +94,7 @@ const state = reactive({
       active: true,
       num: '6',
       text: '周六',
+      newInpuTime: '',
       mark: '周六',
       bgColor: '#F5DEB3'
     },
@@ -89,10 +102,12 @@ const state = reactive({
       active: true,
       num: '7',
       text: '周日',
+      newInpuTime: '',
       mark: '周日',
       bgColor: '#F5DEB3'
     }
-  ]
+  ],
+  inputTime: ''
 })
 // 点击每一天改变样式
 const recordMainCSSChange = reactive(['record_main', 'record_main_1'])
@@ -104,24 +119,31 @@ const showDailyRecord = (num) => {
   switch(num) {
     case '1':
     markTip.value = '周一';
+    state.inputTime = state.tipCircleList[num - 1].newInpuTime;
     break;
     case '2':
     markTip.value = '周二';
+    state.inputTime = state.tipCircleList[num - 1].newInpuTime;
     break;
     case '3':
     markTip.value = '周三';
+    state.inputTime = state.tipCircleList[num - 1].newInpuTime;
     break;
     case '4':
     markTip.value = '周四';
+    state.inputTime = state.tipCircleList[num - 1].newInpuTime;
     break;
     case '5':
     markTip.value = '周五';
+    state.inputTime = state.tipCircleList[num - 1].newInpuTime;
     break;
     case '6':
     markTip.value = '周六';
+    state.inputTime = state.tipCircleList[num - 1].newInpuTime;
     break;
     case '7':
     markTip.value = '周七';
+    state.inputTime = state.tipCircleList[num - 1].newInpuTime;
     break;
     default:
     break;
@@ -147,8 +169,12 @@ const extractNumber = (str) => {
 }
 // 便签确认提交
 const submit = () => {
+  // 绑定输入框的值赋值给数据组
   let num = extractNumber(recordMainCSSChange[1])
   state.tipCircleList[num - 1].text = textarea2.value
+  // 改变输入时间
+  state.inputTime = dateTime.formattedTime + '   ' + dateTime.formattedDate 
+  state.tipCircleList[num - 1].newInpuTime = state.inputTime
 }
 const sureToSave = () => {
   saveData()
@@ -157,7 +183,7 @@ const sureToSave = () => {
 const saveData = () => {
   console.log(state.tipCircleList)
   axios.post('http://39.105.171.50:3389/api/save', {
-    array: state.tipCircleList
+    data: state
   })
     .then(response => {
       console.log('数组数据已保存：', response.data);
@@ -174,7 +200,8 @@ const getData = () => {
     .then(response => {
       console.log('hhh', state.tipCircleList)
       console.log('从服务器获取的数组数据：', response.data);
-      state.tipCircleList = response.data.array
+      state.tipCircleList = response.data.data.tipCircleList
+      state.inputTime = response.data.data.inputTime
       textarea2.value = state.tipCircleList[0].text
       console.log('hhh', state.tipCircleList)
     })
