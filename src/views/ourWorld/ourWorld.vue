@@ -134,8 +134,13 @@ const sureToSave = () => {
 // 保存数组数据
 const saveData = () => {
   console.log(state.tipCircleList)
-  axios.post('http://39.105.171.50:3389/api/save', {
-    data: state
+  // axios.post('http://39.105.171.50:3389/api/save', {
+  axios.get('http://39.105.171.50:3389/', {
+    params: {
+      id: '003',
+      nameContent: inputValue.value,
+      date: dateTime.formattedDate
+    }
   })
     .then(response => {
       console.log('数组数据已保存：', response.data);
@@ -148,13 +153,14 @@ const saveData = () => {
 
 // 获取数据
 const getData = () => {
-  axios.get('http://39.105.171.50:3389/api/data')
+  // axios.get('http://39.105.171.50:3389/api/data')
+  axios.get('http://39.105.171.50:3389/getData')
     .then(response => {
       console.log('hhh', state.tipCircleList)
       console.log('从服务器获取的数组数据：', response.data);
-      state.tipCircleList = response.data.data.tipCircleList
-      state.inputTime = response.data.data.inputTime
-      inputValue.value = state.tipCircleList[0].text
+      // state.tipCircleList = response.data.data.tipCircleList
+      // state.inputTime = response.data.data.inputTime
+      // inputValue.value = state.tipCircleList[0].text
       console.log('hhh', state.tipCircleList)
     })
     .catch(error => {
