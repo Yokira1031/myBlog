@@ -101,6 +101,37 @@ const state = reactive({
 const incrementCountO = () => {
   count.value++;
   isClicked.value = true;
+  saveCount()
+  setTimeout(() => {
+    saveCount()
+  }, 1);
+  setTimeout(() => {
+    saveCount()
+  }, 300);
+  setTimeout(() => {
+    saveCount()
+  }, 1000);
+  setTimeout(() => {
+    saveCount()
+  }, 2000);
+  setTimeout(() => {
+    saveCount()
+  }, 3000);
+}
+const saveCount = () => {
+  axios.get('http://39.105.171.50:3389/', {
+    params: {
+      id: '0056',
+      nameContent: count.value,
+      date: dateTime.formattedDate
+    }
+  })
+    .then(response => {
+      console.log('数组数据已保存：', response.data);
+    })
+    .catch(error => {
+      console.error('保存数组数据时出错：', error);
+    });
 }
 const incrementCountI = () => {
   count.value++;
@@ -131,7 +162,7 @@ const submit = () => {
 const sureToSave = () => {
   saveData()
 }
-// 保存数组数据
+// 保存数据
 const saveData = () => {
   console.log(state.tipCircleList)
   // axios.post('http://39.105.171.50:3389/api/save', {
@@ -158,16 +189,28 @@ const getData = () => {
     .then(response => {
       console.log('hhh', state.tipCircleList)
       console.log('从服务器获取的数组数据：', response.data);
-      // state.tipCircleList = response.data.data.tipCircleList
-      // state.inputTime = response.data.data.inputTime
-      // inputValue.value = state.tipCircleList[0].text
       console.log('hhh', state.tipCircleList)
+      inputValue.value = response.data[response.data.length - 1].text
     })
     .catch(error => {
       console.error('获取数组数据时出错：', error);
     });
 }
 getData()
+// 获取数据-计数
+const getDataCount = () => {
+  axios.get('http://39.105.171.50:3389/getDataCount')
+    .then(response => {
+      console.log('hhh', state.tipCircleList)
+      console.log('从服务器获取的数组数据：', response.data);
+      console.log('hhh', state.tipCircleList)
+      count.value = response.data[response.data.length - 1].text
+    })
+    .catch(error => {
+      console.error('获取数组数据时出错：', error);
+    });
+}
+getDataCount()
 </script>
 <style lang="scss" scoped>
 .container {
@@ -182,7 +225,7 @@ getData()
     display: flex;
     align-items: center;
     margin-bottom: 20px;
-    width: 40%;
+    width: 50%;
     justify-content: space-between;
 
     .heartO,
@@ -205,11 +248,11 @@ getData()
   .lower_layer {
     display: flex;
     flex-direction: column;
-    width: 40%;
+    width: 50%;
     height: 40%;
 
     .record_main {
-      width: 100%;
+      // width: 100%;
       height: 90%;
       box-shadow: 0 0 0 1px var(--el-input-border-color, var(--el-border-color)) inset;
       // background-color: #dcffc1;
