@@ -121,8 +121,9 @@ const incrementCountO = () => {
 const saveCount = () => {
   axios.get('http://39.105.171.50:3389/', {
     params: {
-      id: '0056',
+      id: '4546',
       nameContent: count.value,
+      // nameContent: 0,
       date: dateTime.formattedDate
     }
   })
@@ -263,19 +264,19 @@ getDataCount()
       padding: 15px;
 
       .record_input {
-        width: 92%;
+        width: 100%;
         height: 100%;
 
         :deep(.el-textarea) {
-          padding: 20px;
+          // padding: 20px;
           height: 100%;
 
           // border: solid 1px;
           .el-textarea__inner {
             height: 100%;
             // background-color: #dcffc1;
-            padding-top: 20px;
-            padding-left: 25px;
+            // padding-top: 20px;
+            // padding-left: 25px;
             box-shadow: none;
           }
 
