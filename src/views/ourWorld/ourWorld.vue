@@ -31,6 +31,11 @@
 <script lang="ts" setup>
 import { defineComponent, ref, reactive } from 'vue';
 import axios from 'axios';
+import aes from './aes.js'
+
+const test = 'test123';
+const result = aes.encryptAES(test)
+console.log('testaess', result, aes.decryptAES(result))
 const count = ref(0);
 const isClicked = ref(false);
 import dateTime from './time'
@@ -38,64 +43,6 @@ const recordMainCSSChange = reactive(['record_main', 'record_main_1'])
 const inputValue = ref('')
 // 一周每天的样式、数据
 const state = reactive({
-  tipCircleList: [
-    {
-      active: true,
-      num: '1',
-      text: '周一',
-      newInpuTime: '',
-      mark: '周一',
-      bgColor: '#FFE4B5'
-    },
-    {
-      active: true,
-      num: '2',
-      text: '周二',
-      newInpuTime: '',
-      mark: '周二',
-      bgColor: '#DEB887'
-    },
-    {
-      active: true,
-      num: '3',
-      text: '周三',
-      newInpuTime: '',
-      mark: '周三',
-      bgColor: '#EEE8AA'
-    },
-    {
-      active: true,
-      num: '4',
-      text: '周四',
-      newInpuTime: '',
-      mark: '周四',
-      bgColor: '#F5DEB3'
-    },
-    {
-      active: true,
-      num: '5',
-      text: '周五',
-      newInpuTime: '',
-      mark: '周五',
-      bgColor: '#98FB98'
-    },
-    {
-      active: true,
-      num: '6',
-      text: '周六',
-      newInpuTime: '',
-      mark: '周六',
-      bgColor: '#F5DEB3'
-    },
-    {
-      active: true,
-      num: '7',
-      text: '周日',
-      newInpuTime: '',
-      mark: '周日',
-      bgColor: '#F5DEB3'
-    }
-  ],
   inputTime: ''
 })
 const incrementCountO = () => {
@@ -155,17 +102,14 @@ const extractNumber = (str: string) => {
 const submit = () => {
   // 绑定输入框的值赋值给数据组
   let num: any = extractNumber(recordMainCSSChange[1])
-  state.tipCircleList[num - 1].text = inputValue.value
   // 改变输入时间
   state.inputTime = dateTime.formattedTime + '   ' + dateTime.formattedDate
-  state.tipCircleList[num - 1].newInpuTime = state.inputTime
 }
 const sureToSave = () => {
   saveData()
 }
 // 保存数据
 const saveData = () => {
-  console.log(state.tipCircleList)
   // axios.post('http://39.105.171.50:3389/api/save', {
   axios.get('http://39.105.171.50:3389/', {
     params: {
@@ -188,9 +132,7 @@ const getData = () => {
   // axios.get('http://39.105.171.50:3389/api/data')
   axios.get('http://39.105.171.50:3389/getData')
     .then(response => {
-      console.log('hhh', state.tipCircleList)
       console.log('从服务器获取的数组数据：', response.data);
-      console.log('hhh', state.tipCircleList)
       inputValue.value = response.data[response.data.length - 1].text
     })
     .catch(error => {
@@ -202,7 +144,6 @@ getData()
 const getDataCount = () => {
   axios.get('http://39.105.171.50:3389/getDataCount')
     .then(response => {
-      console.log('hhh', state.tipCircleList)
       console.log('从服务器获取的数组数据：', response.data);
       console.log('hhh', state.tipCircleList)
       count.value = response.data[response.data.length - 1].text
