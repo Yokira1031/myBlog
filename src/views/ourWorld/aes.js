@@ -1,4 +1,4 @@
-const CryptoJS = require('crypto-js');
+import CryptoJS from 'crypto-js'
 
 // 加密函数
 function encryptAES(plaintext, key) {

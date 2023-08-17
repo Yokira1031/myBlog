@@ -13,14 +13,13 @@
       <div :class="recordMainCSSChange">
         <!-- 输入 -->
         <div class="record_input">
-          <el-input v-model="inputValue" type="textarea" :show-word-limit='false' placeholder="Please input"
-            @blur="submit" />
-        </div>
-        <!-- <div class="input_mark">
-          <div class="week">{{ markTip }}</div>
-          <div class="date_time">{{ state.inputTime }}</div>
-        </div> -->
+          <el-input v-model="inputValue" type="textarea" :show-word-limit='false' placeholder="Please input" />
+        </div>  
         <!-- 确认按钮 -->
+        <div class="time_picker" v-if="timeTargetDisable">
+          <el-time-picker class="time_picker" v-model="timeTarget" placeholder="Arbitrary time" />
+
+        </div>
         <div class="record_button">
           <div class="btn" @click="sureToSave"></div>
         </div>
@@ -32,10 +31,13 @@
 import { defineComponent, ref, reactive } from 'vue';
 import axios from 'axios';
 import aes from './aes.js'
+// import scheduleRequest from './timeSend.js'
+
 
 const test = 'test123';
-const result = aes.encryptAES(test)
-console.log('testaess', result, aes.decryptAES(result))
+const key = 'zynlyy9229'
+const result = aes.encryptAES(test, key)
+console.log('testaess', result, aes.decryptAES(result, key))
 const count = ref(0);
 const isClicked = ref(false);
 import dateTime from './time'
@@ -85,36 +87,43 @@ const incrementCountI = () => {
   count.value++;
   isClicked.value = true;
 }
-// 字符串record_main_1jie'gu
-const extractNumber = (str: string) => {
-  const regex = /(\d+)$/;
-  const match = str.match(regex);
-
-  if (match) {
-    const numberStr = match[1];
-    const number = parseInt(numberStr);
-    return number;
-  }
-
-  return null; // 若字符串中没有以数字结尾的字符，则返回 null 或其他你认为合适的值
-}
-// 便签确认提交
-const submit = () => {
-  // 绑定输入框的值赋值给数据组
-  let num: any = extractNumber(recordMainCSSChange[1])
-  // 改变输入时间
-  state.inputTime = dateTime.formattedTime + '   ' + dateTime.formattedDate
-}
+// 定时时间
+let timeTarget = ref('')
+let timeTargetDisable = ref(false)
+// 点击确认发送数据
 const sureToSave = () => {
-  saveData()
+  timeTargetDisable.value = !timeTargetDisable.value
+  // saveData()
+  // 定时发送
+  if (!timeTargetDisable.value) {
+    scheduleRequest(timeTarget.value)
+  }
 }
-// 保存数据
+// 定时发送功能
+function sendRequest() {
+  // 在这里编写发送请求的代码
+  saveData()
+  console.log('发送请求');
+}
+function scheduleRequest(targetTime: any) {
+  const currentTime = new Date().getTime();
+  const timeDelay = targetTime.getTime() - currentTime;
+  if (timeDelay > 0) {
+    setTimeout(function () {
+      sendRequest();
+    }, timeDelay);
+  } else {
+    console.log('指定时间已过');
+  }
+}
+// 保存发送数据
 const saveData = () => {
-  // axios.post('http://39.105.171.50:3389/api/save', {
+  // 加密传输
+  let textSend = aes.encryptAES(inputValue.value, key)
   axios.get('http://39.105.171.50:3389/', {
     params: {
       id: '003',
-      nameContent: inputValue.value,
+      nameContent: textSend,
       date: dateTime.formattedDate
     }
   })
@@ -129,30 +138,36 @@ const saveData = () => {
 
 // 获取数据
 const getData = () => {
-  // axios.get('http://39.105.171.50:3389/api/data')
+
   axios.get('http://39.105.171.50:3389/getData')
     .then(response => {
       console.log('从服务器获取的数组数据：', response.data);
-      inputValue.value = response.data[response.data.length - 1].text
+      let dataGet = response.data[response.data.length - 1].text
+      // 解密赋值
+      inputValue.value = aes.decryptAES(dataGet, key)
     })
     .catch(error => {
       console.error('获取数组数据时出错：', error);
     });
 }
+// 默认获取数据
 getData()
+
 // 获取数据-计数
 const getDataCount = () => {
   axios.get('http://39.105.171.50:3389/getDataCount')
     .then(response => {
       console.log('从服务器获取的数组数据：', response.data);
-      console.log('hhh', state.tipCircleList)
       count.value = response.data[response.data.length - 1].text
     })
     .catch(error => {
       console.error('获取数组数据时出错：', error);
     });
 }
+// 默认获取计数
 getDataCount()
+
+
 </script>
 <style lang="scss" scoped>
 .container {
@@ -225,6 +240,11 @@ getDataCount()
         }
       }
 
+      .time_picker {
+        display: flex;
+        justify-content: center;
+      }
+
       .input_mark {
         // color: red;
         opacity: 0.7;
@@ -252,22 +272,6 @@ getDataCount()
           line-height: 30px;
           cursor: pointer;
           border-radius: 20px;
-        }
-      }
-    }
-
-    .record_main_1 {
-      .record_input {
-        :deep(.el-textarea) {
-          .el-textarea__inner {
-            // background-color: #FFE4B5;
-          }
-        }
-      }
-
-      .record_button {
-        .btn {
-          // background-color: #FFE4B5;
         }
       }
     }
