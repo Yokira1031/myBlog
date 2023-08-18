@@ -14,7 +14,7 @@
         <!-- 输入 -->
         <div class="record_input">
           <el-input v-model="inputValue" type="textarea" :show-word-limit='false' placeholder="Please input" />
-        </div>  
+        </div>
         <!-- 确认按钮 -->
         <div class="time_picker" v-if="timeTargetDisable">
           <el-time-picker class="time_picker" v-model="timeTarget" placeholder="Arbitrary time" />
