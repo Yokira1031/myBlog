@@ -12,9 +12,13 @@
       <!-- 便签输入模块 -->
       <div :class="recordMainCSSChange">
         <!-- 输入 -->
+        <div class="time_record">
+          <span>{{timeRecord}}</span>
+          
+        </div>
         <div class="record_input">
           <el-input v-model="inputValue" type="textarea" :show-word-limit='false' placeholder="Please input" />
-        </div>
+        </div>  
         <!-- 确认按钮 -->
         <div class="time_picker" v-if="timeTargetDisable">
           <el-time-picker class="time_picker" v-model="timeTarget" placeholder="Arbitrary time" />
@@ -96,7 +100,8 @@ const sureToSave = () => {
   // saveData()
   // 定时发送
   if (!timeTargetDisable.value) {
-    scheduleRequest(timeTarget.value)
+    // scheduleRequest(timeTarget.value)
+     saveData()
   }
 }
 // 定时发送功能
@@ -105,8 +110,11 @@ function sendRequest() {
   saveData()
   console.log('发送请求');
 }
-function scheduleRequest(targetTime: any) {
+// 时间戳
+let timeRecord = ref('22:46:24')
+const scheduleRequest = (targetTime: any) => {
   const currentTime = new Date().getTime();
+  timeRecord.value = formatTime(targetTime)
   const timeDelay = targetTime.getTime() - currentTime;
   if (timeDelay > 0) {
     setTimeout(function () {
@@ -116,6 +124,13 @@ function scheduleRequest(targetTime: any) {
     console.log('指定时间已过');
   }
 }
+//时间格式 
+function formatTime(date:any) {
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+  return hours + ':' + minutes + ':' + seconds;
+}
 // 保存发送数据
 const saveData = () => {
   // 加密传输
@@ -124,7 +139,7 @@ const saveData = () => {
     params: {
       id: '003',
       nameContent: textSend,
-      date: dateTime.formattedDate
+      date: timeRecord.value
     }
   })
     .then(response => {
@@ -145,6 +160,7 @@ const getData = () => {
       let dataGet = response.data[response.data.length - 1].text
       // 解密赋值
       inputValue.value = aes.decryptAES(dataGet, key)
+      timeRecord.value = response.data[response.data.length - 1].date
     })
     .catch(error => {
       console.error('获取数组数据时出错：', error);
@@ -239,7 +255,13 @@ getDataCount()
 
         }
       }
-
+      .time_record{
+        display: flex;
+        justify-content: right;
+        padding-right: 30px;
+        opacity: 0.7;
+        font-size: 13px;
+      }
       .time_picker {
         display: flex;
         justify-content: center;
@@ -289,4 +311,3 @@ getDataCount()
   }
 }
 </style>
-
