@@ -139,7 +139,7 @@ const saveData = () => {
     params: {
       id: '003',
       nameContent: textSend,
-      date: timeRecord.value
+      date: timeTarget.value
     }
   })
     .then(response => {
@@ -160,7 +160,9 @@ const getData = () => {
       let dataGet = response.data[response.data.length - 1].text
       // 解密赋值
       inputValue.value = aes.decryptAES(dataGet, key)
-      timeRecord.value = response.data[response.data.length - 1].date
+      const targetTime1 = new Date(response.data[response.data.length - 1].date);
+      timeRecord.value = formatTime(targetTime1)
+      console.log('时间时间1111:',response.data[response.data.length - 1].date,timeRecord.value )
     })
     .catch(error => {
       console.error('获取数组数据时出错：', error);
@@ -258,7 +260,7 @@ getDataCount()
       .time_record{
         display: flex;
         justify-content: right;
-        padding-right: 30px;
+        // padding-right: 30px;
         opacity: 0.7;
         font-size: 13px;
       }
