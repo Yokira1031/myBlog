@@ -14,7 +14,6 @@
         <!-- 输入 -->
         <div class="time_record">
           <span>{{timeRecord}}</span>
-          
         </div>
         <div class="record_input">
           <el-input v-model="inputValue" type="textarea" :show-word-limit='false' placeholder="Please input" />
@@ -24,8 +23,17 @@
           <el-time-picker class="time_picker" v-model="timeTarget" placeholder="Arbitrary time" />
 
         </div>
+        <div class="time_picker" v-if="timeTargetDisableDb">
+          <el-date-picker
+            class="time_picker"
+            v-model="timeTarget" 
+            type="datetime"
+            placeholder="Select date and time"
+          />
+        </div>
         <div class="record_button">
-          <div class="btn" @click="sureToSave"></div>
+          <div class="btn" @click="sureToSave" @dblclick="sureToSaveDb"></div>
+          <div class="btn btn_date" @click="sureToSaveDb"></div>
         </div>
       </div>
     </div>
@@ -94,13 +102,22 @@ const incrementCountI = () => {
 // 定时时间
 let timeTarget = ref('')
 let timeTargetDisable = ref(false)
-// 点击确认发送数据
+let timeTargetDisableDb = ref(false)
+
+// 单击确认发送数据
 const sureToSave = () => {
   timeTargetDisable.value = !timeTargetDisable.value
-  // saveData()
+  timeTargetDisableDb.value = false
   // 定时发送
   if (!timeTargetDisable.value) {
-    // scheduleRequest(timeTarget.value)
+     saveData()
+  }
+}
+// 双击确认发送数据
+const sureToSaveDb = () => {
+  timeTargetDisableDb.value = !timeTargetDisableDb.value
+  timeTargetDisable.value = false
+  if (!timeTargetDisableDb.value) {
      saveData()
   }
 }
@@ -296,6 +313,13 @@ getDataCount()
           line-height: 30px;
           cursor: pointer;
           border-radius: 20px;
+        }
+        .btn_date{
+          height: 15px;
+          width: 15px;
+          margin-bottom: 7px;
+          // background-color: rgb(248, 219, 184);
+          margin-left: 10px;
         }
       }
     }
