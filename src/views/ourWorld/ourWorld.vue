@@ -34,7 +34,22 @@
         </div>
         <div class="record_button">
           <div class="btn" @click="sureToSave" @dblclick="sureToSaveDb"></div>
-          <div class="btn btn_date" @click="sureToSaveDb"></div>
+          <!-- <div class="btn btn_date" @click="sureToSaveDb"></div> -->
+          <div class="popover_container">
+            <!-- <el-popover :visible="visible" placement="top" :width="30" trigger="click">
+              <template #reference>
+                <div class="btn btn_date" @click="visible = !visible"></div>
+              </template>
+              <div>hhhh</div>
+            </el-popover> -->
+            <el-tooltip :visible="visible" placement="top" class="box-item" effect="light">
+              <template #content>
+                <span>Content</span>
+              </template>
+              <div class="btn btn_date" @click="visible = !visible"></div>
+            </el-tooltip>
+          </div>
+
         </div>
       </div>
     </div>
@@ -58,7 +73,7 @@ import aes from './aes.js'
 
 // 对话框
 const centerDialogVisible = ref(false)
-
+const visible = ref(false)
 // 图片上传相关
 
 const fileInput = ref<HTMLInputElement>();
@@ -95,7 +110,7 @@ const selectImage = async (event: Event) => {
     const formData = new FormData();
     formData.append('image', selectedImage.value);
     try {
-      await axios.post('http://localhost:3389/upload', formData);
+      await axios.post('http://39.105.171.50:3389/upload', formData);
       selectedImage.value = null;
       await fetchImages();
     } catch (error) {
@@ -112,7 +127,7 @@ const uploadImage = async () => {
 // 获取所有图片
 const fetchImages = async () => {
   try {
-    const response = await axios.get('http://localhost:3389/images');
+    const response = await axios.get('http://39.105.171.50:3389/images');
     images.value = response.data;
   } catch (error) {
     console.error(error);
@@ -120,7 +135,7 @@ const fetchImages = async () => {
 };
 const getImageUrl = (fileName: string) => {
   // const baseUrl = window.location.origin; // 获取当前页面的基本URL
-  const baseUrl = 'http://localhost:3389/nodeServe/uploads'; // 获取当前页面的基本URL
+  const baseUrl = 'http://39.105.171.50:3389/nodeServe/uploads'; // 获取当前页面的基本URL
   // return baseUrl + '/' + fileName;
   return fileName;
 };
@@ -131,7 +146,7 @@ fetchImages();
 // 删除图片
 const deleteImage = async () => {
   let fileName = '1692504912258-heartO.png'
-  axios.get('http://localhost:3389/delete', {
+  axios.get('http://39.105.171.50:3389/delete', {
     params: {
       fileName: fileName
     }
@@ -179,7 +194,7 @@ const incrementCountO = () => {
   }, 3000);
 }
 const saveCount = () => {
-  axios.get('http://localhost:3389/', {
+  axios.get('http://39.105.171.50:3389/', {
     params: {
       id: '4546',
       nameContent: count.value,
@@ -251,7 +266,7 @@ function formatTime(date: any) {
 const saveData = () => {
   // 加密传输
   let textSend = aes.encryptAES(inputValue.value, key)
-  axios.get('http://localhost:3389/', {
+  axios.get('http://39.105.171.50:3389/', {
     params: {
       id: '003',
       nameContent: textSend,
@@ -270,7 +285,7 @@ const saveData = () => {
 // 获取数据
 const getData = () => {
 
-  axios.get('http://localhost:3389/getData')
+  axios.get('http://39.105.171.50:3389/getData')
     .then(response => {
       console.log('从服务器获取的数组数据：', response.data);
       let dataGet = response.data[response.data.length - 1].text
@@ -289,7 +304,7 @@ getData()
 
 // 获取数据-计数
 const getDataCount = () => {
-  axios.get('http://localhost:3389/getDataCount')
+  axios.get('http://39.105.171.50:3389/getDataCount')
     .then(response => {
       console.log('从服务器获取的数组数据：', response.data);
       count.value = response.data[response.data.length - 1].text
@@ -303,6 +318,13 @@ getDataCount()
 
 
 </script>
+<style lang="scss" >
+.el-popper {
+  width: 30px;
+  background-color: #fff !important;
+}
+</style>
+
 <style lang="scss" scoped>
 .container {
   // float: left;
@@ -434,6 +456,7 @@ getDataCount()
           // background-color: rgb(248, 219, 184);
           margin-left: 10px;
         }
+
       }
     }
 
@@ -456,6 +479,7 @@ getDataCount()
   z-index: 99;
   width: 400px;
 }
+
 
 :deep(.el-overlay) {
   .el-overlay-dialog {
