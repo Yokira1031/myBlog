@@ -1,7 +1,7 @@
 <template>
   <div>
     <input type="file" ref="fileInput" style="display: none" @change="selectImage" />
-    <button @click="uploadImage">上传</button>
+    <!-- <button @click="uploadImage">上传</button> -->
   </div>
   <!-- <input type="file" ref="fileInput" style="display: none" @change="handleFileUpload" />
   <button @click="openFileInput">上传文件</button> -->
@@ -33,7 +33,7 @@
           <el-date-picker class="time_picker" v-model="timeTarget" type="datetime" placeholder="Select date and time" />
         </div>
         <div class="record_button">
-          <div class="btn" @click="sureToSave" @dblclick="sureToSaveDb"></div>
+          <div class="btn" @click="sureToSave"></div>
           <!-- <div class="btn btn_date" @click="sureToSaveDb"></div> -->
           <div class="popover_container">
             <!-- <el-popover :visible="visible" placement="top" :width="30" trigger="click">
@@ -44,9 +44,17 @@
             </el-popover> -->
             <el-tooltip :visible="visible" placement="top" class="box-item" effect="light">
               <template #content>
-                <span>Content</span>
+                <div class="img_upload" @click="uploadImage">
+                  <!-- <Picture class="icon" /> -->
+
+                </div>
+                <div class="img_upload" @click="sureToSaveDb">
+                  <!-- <Calendar class="icon" />s -->
+
+                </div>
               </template>
-              <div class="btn btn_date" @click="visible = !visible"></div>
+              <div class=" btn btn_date" @click="visible = !visible">
+              </div>
             </el-tooltip>
           </div>
 
@@ -121,6 +129,7 @@ const selectImage = async (event: Event) => {
 
 // 上传图片
 const uploadImage = async () => {
+  visible.value = false
   fileInput.value?.click();
 };
 
@@ -229,6 +238,7 @@ const sureToSave = () => {
 }
 // 双击确认发送数据
 const sureToSaveDb = () => {
+  visible.value = false
   timeTargetDisableDb.value = !timeTargetDisableDb.value
   timeTargetDisable.value = false
   if (!timeTargetDisableDb.value) {
@@ -320,8 +330,29 @@ getDataCount()
 </script>
 <style lang="scss" >
 .el-popper {
-  width: 30px;
-  background-color: #fff !important;
+  width: 29px;
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+  align-items: center;
+  height: 50px;
+  padding: 7px 3px;
+  box-sizing: border-box;
+}
+
+.img_upload {
+  border: 1px solid var(--el-border-color);
+  width: 14px;
+  height: 11px;
+  border-radius: 5px;
+  cursor: pointer;
+  // background-color: rgb(255, 241, 222);
+
+  // .icon {
+  //   color: var(--el-border-color);
+  //   width: 20px;
+  //   cursor: pointer;
+  // }
 }
 </style>
 
@@ -448,6 +479,7 @@ getDataCount()
           cursor: pointer;
           border-radius: 20px;
         }
+
 
         .btn_date {
           height: 15px;
