@@ -1,4 +1,10 @@
 <template>
+  <div>
+    <input type="file" ref="fileInput" style="display: none" @change="selectImage" />
+    <button @click="uploadImage">上传</button>
+  </div>
+  <!-- <input type="file" ref="fileInput" style="display: none" @change="handleFileUpload" />
+  <button @click="openFileInput">上传文件</button> -->
   <div class="container">
     <div class="upper_layer">
       <div>
@@ -6,30 +12,25 @@
         <img class="heartI" v-if="isClicked" @click="incrementCountI" src="@/assets/heartI.png" alt="">
       </div>
       <div class="count">{{ count }}</div>
-      <div></div>
+      <div class="photo" @click="centerDialogVisible = true"></div>
     </div>
     <div class="lower_layer">
       <!-- 便签输入模块 -->
       <div :class="recordMainCSSChange">
         <!-- 输入 -->
         <div class="time_record">
-          <span>{{timeRecord}}</span>
+          <span>{{ timeRecord }}</span>
         </div>
         <div class="record_input">
           <el-input v-model="inputValue" type="textarea" :show-word-limit='false' placeholder="Please input" />
-        </div>  
+        </div>
         <!-- 确认按钮 -->
         <div class="time_picker" v-if="timeTargetDisable">
           <el-time-picker class="time_picker" v-model="timeTarget" placeholder="Arbitrary time" />
 
         </div>
         <div class="time_picker" v-if="timeTargetDisableDb">
-          <el-date-picker
-            class="time_picker"
-            v-model="timeTarget" 
-            type="datetime"
-            placeholder="Select date and time"
-          />
+          <el-date-picker class="time_picker" v-model="timeTarget" type="datetime" placeholder="Select date and time" />
         </div>
         <div class="record_button">
           <div class="btn" @click="sureToSave" @dblclick="sureToSaveDb"></div>
@@ -38,6 +39,16 @@
       </div>
     </div>
   </div>
+  <!-- 相册对话框 -->
+  <div class="dialog">
+    <el-dialog v-model="centerDialogVisible" title="" width="80%" align-center>
+      <el-carousel indicator-position="none">
+        <el-carousel-item v-for="(item, index) in images" :key="index">
+          <img :src="getImageUrl(item.url)" :alt="item.name" width="200" />
+        </el-carousel-item>
+      </el-carousel>
+    </el-dialog>
+  </div>
 </template>
 <script lang="ts" setup>
 import { defineComponent, ref, reactive } from 'vue';
@@ -45,7 +56,95 @@ import axios from 'axios';
 import aes from './aes.js'
 // import scheduleRequest from './timeSend.js'
 
+// 对话框
+const centerDialogVisible = ref(false)
 
+// 图片上传相关
+
+const fileInput = ref<HTMLInputElement>();
+const openFileInput = () => {
+  fileInput.value?.click();
+};
+
+const handleFileUpload = (event: Event) => {
+  const files = (event.target as HTMLInputElement).files;
+
+  // 处理上传的文件
+  if (files) {
+    // 在这里执行你的上传逻辑
+    console.log(files);
+  }
+};
+interface Image {
+  _id: string;
+  name: string;
+  url: string;
+}
+// 保存选择的图片
+const selectedImage = ref<File | null>(null);
+
+// 保存所有图片
+const images = ref<Image[]>([]);
+
+// 选择图片时更新selectedImage
+const selectImage = async (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (file) {
+    selectedImage.value = file;
+    const formData = new FormData();
+    formData.append('image', selectedImage.value);
+    try {
+      await axios.post('http://localhost:3389/upload', formData);
+      selectedImage.value = null;
+      await fetchImages();
+    } catch (error) {
+      console.error(error);
+    }
+  }
+};
+
+// 上传图片
+const uploadImage = async () => {
+  fileInput.value?.click();
+};
+
+// 获取所有图片
+const fetchImages = async () => {
+  try {
+    const response = await axios.get('http://localhost:3389/images');
+    images.value = response.data;
+  } catch (error) {
+    console.error(error);
+  }
+};
+const getImageUrl = (fileName: string) => {
+  // const baseUrl = window.location.origin; // 获取当前页面的基本URL
+  const baseUrl = 'http://localhost:3389/nodeServe/uploads'; // 获取当前页面的基本URL
+  // return baseUrl + '/' + fileName;
+  return fileName;
+};
+// 初始化获取图片
+fetchImages();
+
+
+// 删除图片
+const deleteImage = async () => {
+  let fileName = '1692504912258-heartO.png'
+  axios.get('http://localhost:3389/delete', {
+    params: {
+      fileName: fileName
+    }
+  })
+    .then(response => {
+      console.log('数组数据已删除：', response.data);
+    })
+    .catch(error => {
+      console.error('删除数据时出错：', error);
+    });
+
+};
+deleteImage()
 const test = 'test123';
 const key = 'zynlyy9229'
 const result = aes.encryptAES(test, key)
@@ -80,7 +179,7 @@ const incrementCountO = () => {
   }, 3000);
 }
 const saveCount = () => {
-  axios.get('http://39.105.171.50:3389/', {
+  axios.get('http://localhost:3389/', {
     params: {
       id: '4546',
       nameContent: count.value,
@@ -110,7 +209,7 @@ const sureToSave = () => {
   timeTargetDisableDb.value = false
   // 定时发送
   if (!timeTargetDisable.value) {
-     saveData()
+    saveData()
   }
 }
 // 双击确认发送数据
@@ -118,7 +217,7 @@ const sureToSaveDb = () => {
   timeTargetDisableDb.value = !timeTargetDisableDb.value
   timeTargetDisable.value = false
   if (!timeTargetDisableDb.value) {
-     saveData()
+    saveData()
   }
 }
 // 定时发送功能
@@ -142,7 +241,7 @@ const scheduleRequest = (targetTime: any) => {
   }
 }
 //时间格式 
-function formatTime(date:any) {
+function formatTime(date: any) {
   const hours = String(date.getHours()).padStart(2, '0');
   const minutes = String(date.getMinutes()).padStart(2, '0');
   const seconds = String(date.getSeconds()).padStart(2, '0');
@@ -152,7 +251,7 @@ function formatTime(date:any) {
 const saveData = () => {
   // 加密传输
   let textSend = aes.encryptAES(inputValue.value, key)
-  axios.get('http://39.105.171.50:3389/', {
+  axios.get('http://localhost:3389/', {
     params: {
       id: '003',
       nameContent: textSend,
@@ -171,7 +270,7 @@ const saveData = () => {
 // 获取数据
 const getData = () => {
 
-  axios.get('http://39.105.171.50:3389/getData')
+  axios.get('http://localhost:3389/getData')
     .then(response => {
       console.log('从服务器获取的数组数据：', response.data);
       let dataGet = response.data[response.data.length - 1].text
@@ -179,7 +278,7 @@ const getData = () => {
       inputValue.value = aes.decryptAES(dataGet, key)
       const targetTime1 = new Date(response.data[response.data.length - 1].date);
       timeRecord.value = formatTime(targetTime1)
-      console.log('时间时间1111:',response.data[response.data.length - 1].date,timeRecord.value )
+      console.log('时间时间1111:', response.data[response.data.length - 1].date, timeRecord.value)
     })
     .catch(error => {
       console.error('获取数组数据时出错：', error);
@@ -190,7 +289,7 @@ getData()
 
 // 获取数据-计数
 const getDataCount = () => {
-  axios.get('http://39.105.171.50:3389/getDataCount')
+  axios.get('http://localhost:3389/getDataCount')
     .then(response => {
       console.log('从服务器获取的数组数据：', response.data);
       count.value = response.data[response.data.length - 1].text
@@ -206,12 +305,14 @@ getDataCount()
 </script>
 <style lang="scss" scoped>
 .container {
+  // float: left;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100vh;
   // width: 800px;
+  z-index: 9;
 
   .upper_layer {
     display: flex;
@@ -234,6 +335,15 @@ getDataCount()
 
     .count {
       margin-left: -40px;
+    }
+
+    .photo {
+      width: 10px;
+      height: 10px;
+      border-radius: 5px;
+      border: 1px solid;
+      margin-right: 10px;
+      cursor: pointer;
     }
   }
 
@@ -274,13 +384,15 @@ getDataCount()
 
         }
       }
-      .time_record{
+
+      .time_record {
         display: flex;
         justify-content: right;
         // padding-right: 30px;
         opacity: 0.7;
         font-size: 13px;
       }
+
       .time_picker {
         display: flex;
         justify-content: center;
@@ -314,7 +426,8 @@ getDataCount()
           cursor: pointer;
           border-radius: 20px;
         }
-        .btn_date{
+
+        .btn_date {
           height: 15px;
           width: 15px;
           margin-bottom: 7px;
@@ -333,6 +446,27 @@ getDataCount()
     .submit_button {
       align-self: flex-end;
       padding: 10px 20px;
+    }
+  }
+}
+
+.carousel {
+  // position: relative;
+  float: left;
+  z-index: 99;
+  width: 400px;
+}
+
+:deep(.el-overlay) {
+  .el-overlay-dialog {
+    .el-dialog {
+      background: none !important;
+
+      .el-carousel__item {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
     }
   }
 }
