@@ -66,7 +66,7 @@
     <el-dialog v-model="centerDialogVisible" title="" width="80%" align-center>
       <el-carousel indicator-position="none">
         <el-carousel-item v-for="(item, index) in images" :key="index">
-          <img :src="getImageUrl(item.url)" :alt="item.name" width="200" />
+          <img :src="getImageUrl(item.url)" :alt="item.name" width="400" @dblclick="deleteImg(item)"/>
         </el-carousel-item>
       </el-carousel>
     </el-dialog>
@@ -104,62 +104,72 @@ const selectImage = async (event: Event) => {
   const target = event.target as HTMLInputElement;
   const file = target.files?.[0];
   if (file) {
-    selectedImage.value = file;
-    const formData = new FormData();
-    formData.append('image', selectedImage.value);
-    try {
-      await axios.post('http://39.105.171.50:3389/upload', formData);
-      selectedImage.value = null;
-      await fetchImages();
-    } catch (error) {
-      console.error(error);
-    }
+    // 压缩图片
+    compressImg(file, 0.1).then(async (res: { file: File; }) => { //compressImg方法见附录
+      selectedImage.value = res.file;
+      const formData = new FormData();
+      formData.append('image', selectedImage.value);
+			console.log(res,res.file, file,'sssssss')
+      try {
+        await axios.post('http://39.105.171.50:3389/upload', formData);
+        selectedImage.value = null;
+        await fetchImages();
+      } catch (error) {
+        console.error(error);
+      }
+		})
   }
 };
+
 
 // 减少图片体积相关代码
 import { createCanvas, loadImage } from 'canvas';
 
-async function reduceImageSize(imgFile: any, outputFilePath: string, maxWidth: number, maxHeight: number): Promise<void> {
-  const image = imgFile;
-  
-  let width = image.width;
-  let height = image.height;
-  
-  // 计算新的尺寸，保持比例
-  if (width > maxWidth) {
-    height *= maxWidth / width;
-    width = maxWidth;
-  }
-  
-  if (height > maxHeight) {
-    width *= maxHeight / height;
-    height = maxHeight;
-  }
-  
-  // 创建一个新的画布
-  const canvas = createCanvas(width, height);
-  const ctx = canvas.getContext('2d');
-  
-  // 在画布上绘制图像，并调整尺寸
-  ctx.drawImage(image, 0, 0, width, height);
-  
-  // 将画布保存为新的图片文件
-  const stream = canvas.createJPEGStream({ quality: 0.8 });
-  const fs = require('fs');
-  const outFile = fs.createWriteStream(outputFilePath);
-  
-  stream.pipe(outFile);
-  
-  return new Promise((resolve, reject) => {
-    outFile.on('finish', resolve);
-    outFile.on('error', reject);
-  });
-}
+const compressImg:any = (file: any, quality: any) => {
+				if(file[0]) {
+					return Promise.all(Array.from(file).map(e => compressImg(e,
+						quality))) // 如果是 file 数组返回 Promise 数组
+				} else {
+					return new Promise((resolve) => {
+						const reader:any = new FileReader() // 创建 FileReader
+						reader.onload = ({
+							target: {
+								result: src
+							}
+						}) => {
+							const image:any = new Image() // 创建 img 元素
+							image.onload = async() => {
+								const canvas:any = document.createElement('canvas') // 创建 canvas 元素
+								canvas.width = image.width
+								canvas.height = image.height
+								canvas.getContext('2d').drawImage(image, 0, 0, image.width, image.height) // 绘制 canvas
+								const canvasURL = canvas.toDataURL('image/jpeg', quality)
+								const buffer = atob(canvasURL.split(',')[1])
+								let length = buffer.length
+								const bufferArray = new Uint8Array(new ArrayBuffer(length))
+								while(length--) {
+									bufferArray[length] = buffer.charCodeAt(length)
+								}
+								const miniFile = new File([bufferArray], file.name, {
+									type: 'image/jpeg'
+								})
+								resolve({
+									file: miniFile,
+									origin: file,
+									beforeSrc: src,
+									afterSrc: canvasURL,
+									beforeKB: Number((file.size / 1024).toFixed(2)),
+									afterKB: Number((miniFile.size / 1024).toFixed(2))
+								})
+							}
+							image.src = src
+						}
+						reader.readAsDataURL(file)
+					})
+				}
+			}
 
 // test
-reduceImageSize('C:/Users/CY/Desktop/myBlog/myBlog/src/assets/heartO.png', '@/assets/', 30, 30);
-
 // 上传图片
 const uploadImage = async () => {
   visible.value = false
@@ -171,10 +181,16 @@ const fetchImages = async () => {
   try {
     const response = await axios.get('http://39.105.171.50:3389/images');
     images.value = response.data;
+    // reduceImageSize(images.value[9], '@/assets/', 30, 30);
+
+
+
+    console.log('hhhhhhhhhh', images.value.length, response.data)
   } catch (error) {
     console.error(error);
   }
 };
+
 const getImageUrl = (fileName: string) => {
   // const baseUrl = window.location.origin; // 获取当前页面的基本URL
   const baseUrl = 'http://39.105.171.50:3389/nodeServe/uploads'; // 获取当前页面的基本URL
@@ -186,8 +202,8 @@ fetchImages();
 
 
 // 删除图片
-const deleteImage = async () => {
-  let fileName = '1692504912258-heartO.png'
+const deleteImage = async (s: string) => {
+  let fileName = s
   axios.get('http://39.105.171.50:3389/delete', {
     params: {
       fileName: fileName
@@ -201,8 +217,12 @@ const deleteImage = async () => {
     });
 
 };
-deleteImage()
-
+deleteImage('')
+// 双击图片删除该图片
+const deleteImg = (img) =>{
+  deleteImage(img.name)
+  fetchImages()
+}
 // 加密数据相关
 const test = 'test123';
 const key = 'zynlyy9229'
@@ -428,7 +448,7 @@ getDataCount()
       width: 10px;
       height: 10px;
       border-radius: 5px;
-      border: 1px solid;
+  border: 1px solid var(--el-border-color);
       margin-right: 10px;
       cursor: pointer;
     }
