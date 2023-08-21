@@ -1,10 +1,9 @@
 <template>
+<div>
   <div>
     <input type="file" ref="fileInput" style="display: none" @change="selectImage" />
     <!-- <button @click="uploadImage">上传</button> -->
   </div>
-  <!-- <input type="file" ref="fileInput" style="display: none" @change="handleFileUpload" />
-  <button @click="openFileInput">上传文件</button> -->
   <div class="container">
     <div class="upper_layer">
       <div>
@@ -72,6 +71,8 @@
       </el-carousel>
     </el-dialog>
   </div>
+</div>
+
 </template>
 <script lang="ts" setup>
 import { defineComponent, ref, reactive } from 'vue';
@@ -82,22 +83,11 @@ import aes from './aes.js'
 // 对话框
 const centerDialogVisible = ref(false)
 const visible = ref(false)
+
+
 // 图片上传相关
 
 const fileInput = ref<HTMLInputElement>();
-const openFileInput = () => {
-  fileInput.value?.click();
-};
-
-const handleFileUpload = (event: Event) => {
-  const files = (event.target as HTMLInputElement).files;
-
-  // 处理上传的文件
-  if (files) {
-    // 在这里执行你的上传逻辑
-    console.log(files);
-  }
-};
 interface Image {
   _id: string;
   name: string;
@@ -126,6 +116,49 @@ const selectImage = async (event: Event) => {
     }
   }
 };
+
+// 减少图片体积相关代码
+import { createCanvas, loadImage } from 'canvas';
+
+async function reduceImageSize(imgFile: any, outputFilePath: string, maxWidth: number, maxHeight: number): Promise<void> {
+  const image = imgFile;
+  
+  let width = image.width;
+  let height = image.height;
+  
+  // 计算新的尺寸，保持比例
+  if (width > maxWidth) {
+    height *= maxWidth / width;
+    width = maxWidth;
+  }
+  
+  if (height > maxHeight) {
+    width *= maxHeight / height;
+    height = maxHeight;
+  }
+  
+  // 创建一个新的画布
+  const canvas = createCanvas(width, height);
+  const ctx = canvas.getContext('2d');
+  
+  // 在画布上绘制图像，并调整尺寸
+  ctx.drawImage(image, 0, 0, width, height);
+  
+  // 将画布保存为新的图片文件
+  const stream = canvas.createJPEGStream({ quality: 0.8 });
+  const fs = require('fs');
+  const outFile = fs.createWriteStream(outputFilePath);
+  
+  stream.pipe(outFile);
+  
+  return new Promise((resolve, reject) => {
+    outFile.on('finish', resolve);
+    outFile.on('error', reject);
+  });
+}
+
+// test
+reduceImageSize('C:/Users/CY/Desktop/myBlog/myBlog/src/assets/heartO.png', '@/assets/', 30, 30);
 
 // 上传图片
 const uploadImage = async () => {
@@ -169,6 +202,8 @@ const deleteImage = async () => {
 
 };
 deleteImage()
+
+// 加密数据相关
 const test = 'test123';
 const key = 'zynlyy9229'
 const result = aes.encryptAES(test, key)
@@ -178,10 +213,8 @@ const isClicked = ref(false);
 import dateTime from './time'
 const recordMainCSSChange = reactive(['record_main', 'record_main_1'])
 const inputValue = ref('')
-// 一周每天的样式、数据
-const state = reactive({
-  inputTime: ''
-})
+
+// 点赞计数
 const incrementCountO = () => {
   count.value++;
   isClicked.value = true;
@@ -202,6 +235,7 @@ const incrementCountO = () => {
     saveCount()
   }, 3000);
 }
+// 保存发送点赞数
 const saveCount = () => {
   axios.get('http://39.105.171.50:3389/', {
     params: {
