@@ -1,78 +1,69 @@
 <template>
-<div>
   <div>
-    <input type="file" ref="fileInput" style="display: none" @change="selectImage" />
-    <!-- <button @click="uploadImage">上传</button> -->
-  </div>
-  <div class="container">
-    <div class="upper_layer">
-      <div>
-        <img class="heartO" @click="incrementCountO" src="@/assets/heartO.png" alt="">
-        <img class="heartI" v-if="isClicked" @click="incrementCountI" src="@/assets/heartI.png" alt="">
-      </div>
-      <div class="count">{{ count }}</div>
-      <div class="photo" @click="centerDialogVisible = true"></div>
+    <div>
+      <input type="file" ref="fileInput" style="display: none" @change="selectImage" />
+      <!-- <button @click="uploadImage">上传</button> -->
     </div>
-    <div class="lower_layer">
-      <!-- 便签输入模块 -->
-      <div :class="recordMainCSSChange">
-        <!-- 输入 -->
-        <div class="time_record">
-          <span>{{ timeRecord }}</span>
+    <div class="container">
+      <div class="upper_layer">
+        <div>
+          <img class="heartO" @click="incrementCountO" src="@/assets/heartO.png" alt="">
+          <img class="heartI" v-if="isClicked" @click="incrementCountI" src="@/assets/heartI.png" alt="">
         </div>
-        <div class="record_input">
-          <el-input v-model="inputValue" type="textarea" :show-word-limit='false' placeholder="Please input" />
-        </div>
-        <!-- 确认按钮 -->
-        <div class="time_picker" v-if="timeTargetDisable">
-          <el-time-picker class="time_picker" v-model="timeTarget" placeholder="Arbitrary time" />
-
-        </div>
-        <div class="time_picker" v-if="timeTargetDisableDb">
-          <el-date-picker class="time_picker" v-model="timeTarget" type="datetime" placeholder="Select date and time" />
-        </div>
-        <div class="record_button">
-          <div class="btn" @click="sureToSave"></div>
-          <!-- <div class="btn btn_date" @click="sureToSaveDb"></div> -->
-          <div class="popover_container">
-            <!-- <el-popover :visible="visible" placement="top" :width="30" trigger="click">
-              <template #reference>
-                <div class="btn btn_date" @click="visible = !visible"></div>
-              </template>
-              <div>hhhh</div>
-            </el-popover> -->
-            <el-tooltip :visible="visible" placement="top" class="box-item" effect="light">
-              <template #content>
-                <div class="img_upload" @click="uploadImage">
-                  <!-- <Picture class="icon" /> -->
-
-                </div>
-                <div class="img_upload" @click="sureToSaveDb">
-                  <!-- <Calendar class="icon" />s -->
-
-                </div>
-              </template>
-              <div class=" btn btn_date" @click="visible = !visible">
-              </div>
-            </el-tooltip>
+        <div class="count">{{ count }}</div>
+        <div class="photo" @click="centerDialogVisible = true"></div>
+      </div>
+      <div class="lower_layer">
+        <!-- 便签输入模块 -->
+        <div :class="recordMainCSSChange">
+          <!-- 输入 -->
+          <div class="time_record">
+            <span>{{ timeRecord }}</span>
           </div>
+          <div class="record_input">
+            <el-input v-model="inputValue" type="textarea" :show-word-limit='false' placeholder="Please input" />
+          </div>
+          <!-- 时间选择-->
+          <div class="time_picker" v-if="timeTargetDisable">
+            <el-time-picker class="time_picker" v-model="timeTarget" placeholder="Arbitrary time" />
+          </div>
+          <!-- 日期选择 -->
+          <div class="time_picker" v-if="timeTargetDisableDb">
+            <el-date-picker class="time_picker" v-model="timeTarget" type="datetime" placeholder="Select date and time" />
+          </div>
+          <!-- 按钮 -->
+          <div class="record_button">
+            <div class="btn" @click="sureToSave">
 
+            </div>
+
+            <div class=" btn btn_date" @click="visible = !visible">
+              <div v-show="visible" class="upload_container">
+                <div class="img_upload" @click="uploadImage" />
+                <div class="img_upload" @click="sureToSaveDb" />
+              </div>
+            </div>
+
+          </div>
         </div>
       </div>
     </div>
+    <!-- 相册对话框 -->
+    <div class="dialog">
+      <el-dialog v-model="centerDialogVisible" title="" width="80%" align-center>
+        <photo-provider :loop="false">
+          <photo-consumer v-for="src in images" :intro="src" :key="src" :src="src">
+            <img :src="getImageUrl(src.url)" @dblclick="deleteImg(src)" class="view-box">
+          </photo-consumer>
+        </photo-provider>
+        <!-- <el-carousel indicator-position="none">
+          <el-carousel-item v-for="(item, index) in images" :key="index">
+            <img :src="getImageUrl(item.url)" :alt="item.name" @dblclick="deleteImg(item)" width="300" />
+          </el-carousel-item>
+        </el-carousel> -->
+      </el-dialog>
+    </div>
   </div>
-  <!-- 相册对话框 -->
-  <div class="dialog">
-    <el-dialog v-model="centerDialogVisible" title="" width="80%" align-center>
-      <el-carousel indicator-position="none">
-        <el-carousel-item v-for="(item, index) in images" :key="index">
-          <img :src="getImageUrl(item.url)" :alt="item.name" width="400" @dblclick="deleteImg(item)"/>
-        </el-carousel-item>
-      </el-carousel>
-    </el-dialog>
-  </div>
-</div>
-
 </template>
 <script lang="ts" setup>
 import { defineComponent, ref, reactive } from 'vue';
@@ -109,7 +100,7 @@ const selectImage = async (event: Event) => {
       selectedImage.value = res.file;
       const formData = new FormData();
       formData.append('image', selectedImage.value);
-			console.log(res,res.file, file,'sssssss')
+      console.log(res, res.file, file, 'sssssss')
       try {
         await axios.post('http://39.105.171.50:3389/upload', formData);
         selectedImage.value = null;
@@ -117,57 +108,56 @@ const selectImage = async (event: Event) => {
       } catch (error) {
         console.error(error);
       }
-		})
+    })
   }
 };
 
 
 // 减少图片体积相关代码
-import { createCanvas, loadImage } from 'canvas';
 
-const compressImg:any = (file: any, quality: any) => {
-				if(file[0]) {
-					return Promise.all(Array.from(file).map(e => compressImg(e,
-						quality))) // 如果是 file 数组返回 Promise 数组
-				} else {
-					return new Promise((resolve) => {
-						const reader:any = new FileReader() // 创建 FileReader
-						reader.onload = ({
-							target: {
-								result: src
-							}
-						}) => {
-							const image:any = new Image() // 创建 img 元素
-							image.onload = async() => {
-								const canvas:any = document.createElement('canvas') // 创建 canvas 元素
-								canvas.width = image.width
-								canvas.height = image.height
-								canvas.getContext('2d').drawImage(image, 0, 0, image.width, image.height) // 绘制 canvas
-								const canvasURL = canvas.toDataURL('image/jpeg', quality)
-								const buffer = atob(canvasURL.split(',')[1])
-								let length = buffer.length
-								const bufferArray = new Uint8Array(new ArrayBuffer(length))
-								while(length--) {
-									bufferArray[length] = buffer.charCodeAt(length)
-								}
-								const miniFile = new File([bufferArray], file.name, {
-									type: 'image/jpeg'
-								})
-								resolve({
-									file: miniFile,
-									origin: file,
-									beforeSrc: src,
-									afterSrc: canvasURL,
-									beforeKB: Number((file.size / 1024).toFixed(2)),
-									afterKB: Number((miniFile.size / 1024).toFixed(2))
-								})
-							}
-							image.src = src
-						}
-						reader.readAsDataURL(file)
-					})
-				}
-			}
+const compressImg: any = (file: any, quality: any) => {
+  if (file[0]) {
+    return Promise.all(Array.from(file).map(e => compressImg(e,
+      quality))) // 如果是 file 数组返回 Promise 数组
+  } else {
+    return new Promise((resolve: any) => {
+      const reader: any = new FileReader() // 创建 FileReader
+      reader.onload = ({
+        target: {
+          result: src
+        }
+      }: any) => {
+        const image: any = new Image() // 创建 img 元素
+        image.onload = async () => {
+          const canvas: any = document.createElement('canvas') // 创建 canvas 元素
+          canvas.width = image.width
+          canvas.height = image.height
+          canvas.getContext('2d').drawImage(image, 0, 0, image.width, image.height) // 绘制 canvas
+          const canvasURL = canvas.toDataURL('image/jpeg', quality)
+          const buffer = atob(canvasURL.split(',')[1])
+          let length = buffer.length
+          const bufferArray = new Uint8Array(new ArrayBuffer(length))
+          while (length--) {
+            bufferArray[length] = buffer.charCodeAt(length)
+          }
+          const miniFile = new File([bufferArray], file.name, {
+            type: 'image/jpeg'
+          })
+          resolve({
+            file: miniFile,
+            origin: file,
+            beforeSrc: src,
+            afterSrc: canvasURL,
+            beforeKB: Number((file.size / 1024).toFixed(2)),
+            afterKB: Number((miniFile.size / 1024).toFixed(2))
+          })
+        }
+        image.src = src
+      }
+      reader.readAsDataURL(file)
+    })
+  }
+}
 
 // test
 // 上传图片
@@ -219,7 +209,7 @@ const deleteImage = async (s: string) => {
 };
 deleteImage('')
 // 双击图片删除该图片
-const deleteImg = (img) =>{
+const deleteImg = (img: any) => {
   deleteImage(img.name)
   fetchImages()
 }
@@ -255,9 +245,9 @@ const incrementCountO = () => {
     saveCount()
   }, 3000);
 }
-// 保存发送点赞数
+// 保存发送心动数
 const saveCount = () => {
-  axios.get('http://39.105.171.50:3389/', {
+  axios.get('http://39.105.171.50:3389/heartCounts', {
     params: {
       id: '4546',
       nameContent: count.value,
@@ -285,6 +275,7 @@ let timeTargetDisableDb = ref(false)
 const sureToSave = () => {
   timeTargetDisable.value = !timeTargetDisable.value
   timeTargetDisableDb.value = false
+  visible.value = false
   // 定时发送
   if (!timeTargetDisable.value) {
     saveData()
@@ -383,30 +374,26 @@ getDataCount()
 
 </script>
 <style lang="scss" >
-.el-popper {
-  width: 29px;
-  display: flex;
-  justify-content: space-between;
-  flex-direction: column;
-  align-items: center;
-  height: 50px;
-  padding: 7px 3px;
-  box-sizing: border-box;
-}
+.upload_container {
+  width: 35px;
+  height: 60px;
+  position: relative;
+  bottom: 50px;
+  right: 0px;
 
-.img_upload {
-  border: 1px solid var(--el-border-color);
-  width: 14px;
-  height: 11px;
-  border-radius: 5px;
-  cursor: pointer;
-  // background-color: rgb(255, 241, 222);
+  // box-sizing: border-box;
+  // border: solid;
 
-  // .icon {
-  //   color: var(--el-border-color);
-  //   width: 20px;
-  //   cursor: pointer;
-  // }
+  .img_upload {
+    position: relative;
+    // top: 5px;
+    margin-bottom: 8px;
+    border: 1px solid var(--el-border-color);
+    width: 13px;
+    height: 13px;
+    border-radius: 6.5px;
+    cursor: pointer;
+  }
 }
 </style>
 
@@ -448,7 +435,7 @@ getDataCount()
       width: 10px;
       height: 10px;
       border-radius: 5px;
-  border: 1px solid var(--el-border-color);
+      border: 1px solid var(--el-border-color);
       margin-right: 10px;
       cursor: pointer;
     }
@@ -519,6 +506,7 @@ getDataCount()
         width: 100%;
         height: 100px;
         display: flex;
+        position: relative;
         justify-content: center;
         align-items: end;
         // border: 1px solid;
@@ -538,8 +526,8 @@ getDataCount()
         .btn_date {
           height: 15px;
           width: 15px;
+          position: relative;
           margin-bottom: 7px;
-          // background-color: rgb(248, 219, 184);
           margin-left: 10px;
         }
 
@@ -579,5 +567,9 @@ getDataCount()
       }
     }
   }
+}
+
+.view-box {
+  width: 300px;
 }
 </style>
